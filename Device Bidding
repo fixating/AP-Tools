@@ -1,0 +1,760 @@
+var campContains1 = 'INSERT_CAMPAIGN_TEXT';
+var campContains2 = 'INSERT_CAMPAIGN_TEXT';
+var campContains3 = 'INSERT_CAMPAIGN_TEXT;
+var campDoesNotContain1 = 'Placeholder';
+var campDoesNotContain2 = 'Placeholder';
+var campDoesNotContain3 = 'Placeholder';
+
+
+var highConvMaxCplDsk = 165;
+var highConvMaxCplMob = 165;
+var highConvMaxCplTab = 165;
+var usePreviousDayData = true;
+var useAllTimeData = true;
+var useVariedDays = true;
+var clearAdGroups = true;
+
+var start=new Date("January 01, 2010 00:00:00");
+
+
+var date=new Date();
+var oneDay=(1000*60*60*24);
+var end=date-oneDay;
+var startDt=Utilities.formatDate(new Date(start),"CST","yyyy-MM-dd");
+var endDt=Utilities.formatDate(new Date(end),"CST","yyyy-MM-dd");
+var range=startDt.replace(/-/g,"")+","+endDt.replace(/-/g,"");
+var now=new Date();
+var start=new Date(now.getFullYear(), 0, 0);
+var diff=now-start;
+var day=Math.floor(diff/oneDay);
+
+var highConvDblMaxCplDsk=(highConvMaxCplDsk*1.7);
+var highConvExtremeCplDsk=(highConvDblMaxCplDsk*1.7);
+var highConvMinCplDsk=(highConvMaxCplDsk*0.8);
+var highConvGreatCplDsk=(highConvMinCplDsk*0.7);
+var highConvBoostDsk=(highConvMaxCplDsk*0.9);
+var lowConvMinCplDsk=(highConvMinCplDsk*0.8);
+var lowConvMaxCplDsk=(lowConvMinCplDsk*1.25);
+var lowConvDblMaxCplDsk=(lowConvMaxCplDsk*1.7);
+var lowConvExtremeCplDsk=(lowConvDblMaxCplDsk*1.7);
+var lowConvGreatCplDsk=(lowConvMinCplDsk*0.7);
+var lowConvBoostDsk=(lowConvMaxCplDsk*0.9);
+var superConvMinCplDsk=(highConvMaxCplDsk*1.0);
+var superConvMaxCplDsk=(superConvMinCplDsk*1.25);
+var superConvDblMaxCplDsk=(superConvMaxCplDsk*1.7);
+var superConvExtremeCplDsk=(superConvDblMaxCplDsk*1.7);
+var superConvGreatCplDsk=(superConvMinCplDsk*0.7);
+var superConvBoostDsk=(superConvMaxCplDsk*0.9);
+var noConvMaxCostDsk=(lowConvMinCplDsk*0.65);
+var noConvDblMaxCostDsk=(noConvMaxCostDsk*1.7);
+var noConvExtremeCostDsk=(noConvDblMaxCostDsk*1.7);
+var noConvMinCostDsk=(noConvMaxCostDsk*0.4);
+
+var highConvDblMaxCplMob=(highConvMaxCplMob*1.7);
+var highConvExtremeCplMob=(highConvDblMaxCplMob*1.7);
+var highConvMinCplMob=(highConvMaxCplMob*0.8);
+var highConvGreatCplMob=(highConvMinCplMob*0.7);
+var highConvBoostMob=(highConvMaxCplMob*0.9);
+var lowConvMinCplMob=(highConvMinCplMob*0.8);
+var lowConvMaxCplMob=(lowConvMinCplMob*1.25);
+var lowConvDblMaxCplMob=(lowConvMaxCplMob*1.7);
+var lowConvExtremeCplMob=(lowConvDblMaxCplMob*1.7);
+var lowConvGreatCplMob=(lowConvMinCplMob*0.7);
+var lowConvBoostMob=(lowConvMaxCplMob*0.9);
+var superConvMinCplMob=(highConvMaxCplMob*1.0);
+var superConvMaxCplMob=(superConvMinCplMob*1.25);
+var superConvDblMaxCplMob=(superConvMaxCplMob*1.7);
+var superConvExtremeCplMob=(superConvDblMaxCplMob*1.7);
+var superConvGreatCplMob=(superConvMinCplMob*0.7);
+var superConvBoostMob=(superConvMaxCplMob*0.9);
+var noConvMaxCostMob=(lowConvMinCplMob*0.65);
+var noConvDblMaxCostMob=(noConvMaxCostMob*1.7);
+var noConvExtremeCostMob=(noConvDblMaxCostMob*1.7);
+var noConvMinCostMob=(noConvMaxCostMob*0.4);
+
+var highConvDblMaxCplTab=(highConvMaxCplTab*1.7);
+var highConvExtremeCplTab=(highConvDblMaxCplTab*1.7);
+var highConvMinCplTab=(highConvMaxCplTab*0.8);
+var highConvGreatCplTab=(highConvMinCplTab*0.7);
+var highConvBoostTab=(highConvMaxCplTab*0.9);
+var lowConvMinCplTab=(highConvMinCplTab*0.8);
+var lowConvMaxCplTab=(lowConvMinCplTab*1.25);
+var lowConvDblMaxCplTab=(lowConvMaxCplTab*1.7);
+var lowConvExtremeCplTab=(lowConvDblMaxCplTab*1.7);
+var lowConvGreatCplTab=(lowConvMinCplTab*0.7);
+var lowConvBoostTab=(lowConvMaxCplTab*0.9);
+var superConvMinCplTab=(highConvMaxCplTab*1.0);
+var superConvMaxCplTab=(superConvMinCplTab*1.25);
+var superConvDblMaxCplTab=(superConvMaxCplTab*1.7);
+var superConvExtremeCplTab=(superConvDblMaxCplTab*1.7);
+var superConvGreatCplTab=(superConvMinCplTab*0.7);
+var superConvBoostTab=(superConvMaxCplTab*0.9);
+var noConvMaxCostTab=(lowConvMinCplTab*0.65);
+var noConvDblMaxCostTab=(noConvMaxCostTab*1.7);
+var noConvExtremeCostTab=(noConvDblMaxCostTab*1.7);
+var noConvMinCostTab=(noConvMaxCostTab*0.4);
+
+var negweak = -0.01;
+var posweak = 0.01;
+var negstrong = -0.02;
+var posstrong = 0.02;
+var negsuper = -0.03;
+var boost = 0.005
+
+function main() {
+var agDevs = [];
+var srchCamp = [];  
+var devAll = [];
+var dev30 = [];
+var dev14 = [];
+var dev7 = [];
+var dev1 = [];  
+var final = [];
+
+  if(clearAdGroups==true){  
+var report = AdWordsApp.report(
+ "SELECT AdGroupId,AdGroupDesktopBidModifier,AdGroupMobileBidModifier,AdGroupTabletBidModifier"+
+ " FROM ADGROUP_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND AdGroupStatus = ENABLED " +
+ " AND CampaignStatus = ENABLED");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var agId = row["AdGroupId"];
+    var desktop = row["AdGroupDesktopBidModifier"];
+    var mobile = row["AdGroupMobileBidModifier"];
+    var tablet = row["AdGroupTabletBidModifier"];        
+
+if(desktop!='--'){var temp=[];temp.push(agId, "desktop");agDevs.push(temp)} 
+if(mobile!='--'){var temp=[];temp.push(agId, "mobile");agDevs.push(temp)}
+if(tablet!='--'){var temp=[];temp.push(agId, "tablet");agDevs.push(temp)}}}
+    
+var report = AdWordsApp.report(
+ "SELECT CampaignId,Device,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " AND CampaignStatus = ENABLED " +
+ " DURING LAST_30_DAYS"); 
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+    var device = row["Device"];
+    var clicks = row["Clicks"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;        
+
+if(device=="Computers"){var id=30000;    
+if(conversions==0){
+if(cost<noConvMinCostDsk){(NewBid=posweak)
+}else if(cost>noConvExtremeCostDsk){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostDsk){(NewBid=negstrong)
+}else if(cost>noConvMaxCostDsk){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCplDsk){(NewBid=posstrong)
+}else if(costconv<superConvMinCplDsk){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk){(NewBid=boost)
+}else if(costconv>superConvExtremeCplDsk){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplDsk){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplDsk){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCplDsk){(NewBid=posstrong)
+}else if(costconv<highConvMinCplDsk){(NewBid=posweak)
+}else if(costconv<highConvBoostDsk){(NewBid=boost)
+}else if(costconv>highConvExtremeCplDsk){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplDsk){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplDsk){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplDsk){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplDsk){(NewBid=posweak)
+}else if(costconv<lowConvBoostDsk){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplDsk){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplDsk){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplDsk){(NewBid=negweak)}}}
+  
+if(device=="Mobile devices with full browsers"){var id=30001;
+if(conversions==0){
+if(cost<noConvMinCostMob){(NewBid=posweak)
+}else if(cost>noConvExtremeCostMob){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostMob){(NewBid=negstrong)
+}else if(cost>noConvMaxCostMob){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCplMob){(NewBid=posstrong)
+}else if(costconv<superConvMinCplMob){(NewBid=posweak)
+}else if(costconv<superConvBoostMob){(NewBid=boost)
+}else if(costconv>superConvExtremeCplMob){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplMob){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplMob){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCplMob){(NewBid=posstrong)
+}else if(costconv<highConvMinCplMob){(NewBid=posweak)
+}else if(costconv<highConvBoostMob){(NewBid=boost)
+}else if(costconv>highConvExtremeCplMob){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplMob){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplMob){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplMob){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplMob){(NewBid=posweak)
+}else if(costconv<lowConvBoostMob){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplMob){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplMob){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplMob){(NewBid=negweak)}}}
+    
+if(device=="Tablets with full browsers"){var id=30002;
+if(conversions==0){
+if(cost<noConvMinCostTab){(NewBid=posweak)
+}else if(cost>noConvExtremeCostTab){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostTab){(NewBid=negstrong)
+}else if(cost>noConvMaxCostTab){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCplTab){(NewBid=posstrong)
+}else if(costconv<superConvMinCplTab){(NewBid=posweak)
+}else if(costconv<superConvBoostTab){(NewBid=boost)
+}else if(costconv>superConvExtremeCplTab){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplTab){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplTab){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCplTab){(NewBid=posstrong)
+}else if(costconv<highConvMinCplTab){(NewBid=posweak)
+}else if(costconv<highConvBoostTab){(NewBid=boost)
+}else if(costconv>highConvExtremeCplTab){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplTab){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplTab){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplTab){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplTab){(NewBid=posweak)
+}else if(costconv<lowConvBoostTab){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplTab){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplTab){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplTab){(NewBid=negweak)}}}
+    
+var temp=[];var sig=Math.abs(NewBid*100);
+if(conversions==0&&NewBid==0.01){sig=0};
+if(NewBid==boost){sig=0}
+temp.push(campId, id, NewBid, clicks, sig);
+dev30.push(temp)}
+
+var report = AdWordsApp.report(
+ "SELECT CampaignId,Device,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " AND CampaignStatus = ENABLED " +
+ " DURING LAST_14_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+    var device = row["Device"];
+    var clicks = row["Clicks"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;        
+
+if(device=="Computers"){var id=30000;
+if(conversions==0){
+if(cost>noConvExtremeCostDsk*1.1){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostDsk*1.1){(NewBid=negstrong)
+}else if(cost>noConvMaxCostDsk*1.1){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<superConvGreatCplDsk*0.9){(NewBid=posstrong)
+}else if(costconv<superConvMinCplDsk*0.9){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>superConvExtremeCplDsk*1.1){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplDsk*1.1){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplDsk*1.1){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<highConvGreatCplDsk*0.9){(NewBid=posstrong)
+}else if(costconv<highConvMinCplDsk*0.9){(NewBid=posweak)
+}else if(costconv<highConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>highConvExtremeCplDsk*1.1){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplDsk*1.1){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplDsk*1.1){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplDsk*0.9){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplDsk*0.9){(NewBid=posweak)
+}else if(costconv<lowConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplDsk*1.1){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplDsk*1.1){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplDsk*1.1){(NewBid=negweak)}}}
+
+if(device=="Mobile devices with full browsers"){var id=30001;
+if(conversions==0){
+if(cost>noConvExtremeCostMob*1.1){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostMob*1.1){(NewBid=negstrong)
+}else if(cost>noConvMaxCostMob*1.1){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<superConvGreatCplMob*0.9){(NewBid=posstrong)
+}else if(costconv<superConvMinCplMob*0.9){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>superConvExtremeCplMob*1.1){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplMob*1.1){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplMob*1.1){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<highConvGreatCplMob*0.9){(NewBid=posstrong)
+}else if(costconv<highConvMinCplMob*0.9){(NewBid=posweak)
+}else if(costconv<highConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>highConvExtremeCplMob*1.1){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplMob*1.1){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplMob*1.1){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplMob*0.9){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplMob*0.9){(NewBid=posweak)
+}else if(costconv<lowConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplMob*1.1){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplMob*1.1){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplMob*1.1){(NewBid=negweak)}}}
+    
+if(device=="Tablets with full browsers"){var id=30002;
+if(conversions<0.1){
+if(cost>noConvExtremeCostTab*1.1){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostTab*1.1){(NewBid=negstrong)
+}else if(cost>noConvMaxCostTab*1.1){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<superConvGreatCplTab*0.9){(NewBid=posstrong)
+}else if(costconv<superConvMinCplTab*0.9){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk*0.9){(NewBid=boost)
+}else if(costconv>superConvExtremeCplTab*1.1){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplTab*1.1){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplTab*1.1){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<highConvGreatCplTab*0.9){(NewBid=posstrong)
+}else if(costconv<highConvMinCplTab*0.9){(NewBid=posweak)
+}else if(costconv<highConvBoostTab*0.9){(NewBid=boost)
+}else if(costconv>highConvExtremeCplTab*1.1){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplTab*1.1){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplTab*1.1){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplTab*0.9){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplTab*0.9){(NewBid=posweak)
+}else if(costconv<lowConvBoostTab*0.9){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplTab*1.1){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplTab*1.1){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplTab*1.1){(NewBid=negweak)}}}
+    
+var temp=[];var sig=Math.abs(NewBid*200);
+if(NewBid==boost){sig=0}    
+temp.push(campId, id, NewBid, clicks, sig);
+dev14.push(temp)}
+
+var report = AdWordsApp.report(
+ "SELECT CampaignId,Device,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " AND CampaignStatus = ENABLED " +
+ " DURING LAST_7_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+    var device = row["Device"];
+    var clicks = row["Clicks"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;        
+
+if(device=="Computers"){var id = 30000;    
+if(conversions==0){
+if(cost>noConvExtremeCostDsk*1.2){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostDsk*1.2){(NewBid=negstrong)
+}else if(cost>noConvMaxCostDsk*1.2){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<superConvGreatCplDsk*0.8){(NewBid=posstrong)
+}else if(costconv<superConvMinCplDsk*0.8){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk*0.8){(NewBid=boost)
+}else if(costconv>superConvExtremeCplDsk*1.2){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplDsk*1.2){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplDsk*1.2){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<highConvGreatCplDsk*0.8){(NewBid=posstrong)
+}else if(costconv<highConvMinCplDsk){(NewBid=posweak)
+}else if(costconv<highConvBoostDsk*0.8){(NewBid=boost)
+}else if(costconv>highConvExtremeCplDsk*1.2){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplDsk*1.2){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplDsk*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplDsk*0.8){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplDsk*0.8){(NewBid=posweak)
+}else if(costconv<lowConvBoostDsk*0.8){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplDsk*1.2){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplDsk*1.2){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplDsk*1.2){(NewBid=negweak)}}}
+    
+if(device=="Mobile devices with full browsers"){var id=30001;
+if(conversions==0){
+if(cost>noConvExtremeCostMob*1.2){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostMob*1.2){(NewBid=negstrong)
+}else if(cost>noConvMaxCostMob*1.2){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<superConvGreatCplMob*0.8){(NewBid=posstrong)
+}else if(costconv<superConvMinCplMob*0.8){(NewBid=posweak)
+}else if(costconv<superConvBoostMob*0.8){(NewBid=boost)
+}else if(costconv>superConvExtremeCplMob*1.2){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplMob*1.2){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplMob*1.2){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<highConvGreatCplMob*0.8){(NewBid=posstrong)
+}else if(costconv<highConvMinCplMob){(NewBid=posweak)
+}else if(costconv<highConvBoostMob*0.8){(NewBid=boost)
+}else if(costconv>highConvExtremeCplMob*1.2){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplMob*1.2){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplMob*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplMob*0.8){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplMob*0.8){(NewBid=posweak)
+}else if(costconv<lowConvBoostMob*0.8){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplMob*1.2){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplMob*1.2){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplMob*1.2){(NewBid=negweak)}}}
+    
+if(device=="Tablets with full browsers"){var id=30002;
+if(conversions==0){
+if(cost>noConvExtremeCostTab*1.2){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostTab*1.2){(NewBid=negstrong)
+}else if(cost>noConvMaxCostTab*1.2){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<superConvGreatCplTab*0.8){(NewBid=posstrong)
+}else if(costconv<superConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv<superConvBoostTab*0.8){(NewBid=boost)
+}else if(costconv>superConvExtremeCplTab*1.2){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplTab*1.2){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplTab*1.2){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<highConvGreatCplTab*0.8){(NewBid=posstrong)
+}else if(costconv<highConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv<highConvBoostTab*0.8){(NewBid=boost)
+}else if(costconv>highConvExtremeCplTab*1.2){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplTab*1.2){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplTab*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplTab*0.8){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv<lowConvBoostTab*0.8){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplTab*1.2){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplTab*1.2){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplTab*1.2){(NewBid=negweak)}}}
+    
+var temp=[];var sig=Math.abs(NewBid*200);
+if(NewBid==boost){sig=0}    
+temp.push(campId, id, NewBid, clicks, sig);
+dev7.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignId,Device,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 +
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 +
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 +
+ " AND Impressions > 0 " +
+ " AND CampaignStatus = ENABLED " +
+ " DURING YESTERDAY");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+    var device = row["Device"];
+    var clicks = row["Clicks"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;        
+
+if(device=="Computers"){var id=30000;
+if(conversions==0){
+if(cost>noConvExtremeCostDsk*1.3){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostDsk*1.3){(NewBid=negstrong)
+}else if(cost>noConvMaxCostDsk*1.3){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<superConvGreatCplDsk*0.7){(NewBid=posstrong)
+}else if(costconv<superConvMinCplDsk*0.7){(NewBid=posweak)
+}else if(costconv<superConvBoostDsk*0.7){(NewBid=boost)
+}else if(costconv>superConvExtremeCplDsk*1.3){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplDsk*1.3){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplDsk*1.3){(NewBid=negweak)}
+}else if(conversions>=2){
+if(costconv<highConvGreatCplDsk*0.7){(NewBid=posstrong)
+}else if(costconv<highConvMinCplDsk*0.7){(NewBid=posweak)
+}else if(costconv<highConvBoostDsk*0.7){(NewBid=boost)
+}else if(costconv>highConvExtremeCplDsk*1.3){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplDsk*1.3){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplDsk*1.3){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplDsk*0.7){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplDsk*0.7){(NewBid=posweak)
+}else if(costconv<lowConvBoostDsk*0.7){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplDsk*1.3){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplDsk*1.3){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplDsk*1.3){(NewBid=negweak)}}} 
+
+if(device=="Mobile devices with full browsers"){var id=30001;
+if(conversions==0){
+if(cost>noConvExtremeCostMob*1.3){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostMob*1.3){(NewBid=negstrong)
+}else if(cost>noConvMaxCostMob*1.3){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<superConvGreatCplMob*0.7){(NewBid=posstrong)
+}else if(costconv<superConvMinCplMob*0.7){(NewBid=posweak)
+}else if(costconv<superConvBoostMob*0.7){(NewBid=boost)
+}else if(costconv>superConvExtremeCplMob*1.3){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplMob*1.3){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplMob*1.3){(NewBid=negweak)}
+}else if(conversions>=2){
+if(costconv<highConvGreatCplMob*0.7){(NewBid=posstrong)
+}else if(costconv<highConvMinCplMob*0.7){(NewBid=posweak)
+}else if(costconv<highConvBoostMob*0.7){(NewBid=boost)
+}else if(costconv>highConvExtremeCplMob*1.3){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplMob*1.3){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplMob*1.3){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplMob*0.7){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplMob*0.7){(NewBid=posweak)
+}else if(costconv<lowConvBoostMob*0.7){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplMob*1.3){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplMob*1.3){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplMob*1.3){(NewBid=negweak)}}}
+    
+if(device=="Tablets with full browsers"){var id=30002;
+if(conversions==0){
+if(cost>noConvExtremeCostTab*1.3){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCostTab*1.3){(NewBid=negstrong)
+}else if(cost>noConvMaxCostTab*1.3){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<superConvGreatCplTab*0.7){(NewBid=posstrong)
+}else if(costconv<superConvMinCplTab*0.7){(NewBid=posweak)
+}else if(costconv<superConvBoostTab*0.7){(NewBid=boost)
+}else if(costconv>superConvExtremeCplTab*1.3){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCplTab*1.3){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplTab*1.3){(NewBid=negweak)}
+}else if(conversions>=2){
+if(costconv<highConvGreatCplTab*0.7){(NewBid=posstrong)
+}else if(costconv<highConvMinCplTab*0.7){(NewBid=posweak)
+}else if(costconv<highConvBoostTab*0.7){(NewBid=boost)
+}else if(costconv>highConvExtremeCplTab*1.3){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCplTab*1.3){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplTab*1.3){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCplTab*0.7){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplTab*0.7){(NewBid=posweak)
+}else if(costconv<lowConvBoostTab*0.7){(NewBid=boost)
+}else if(costconv>lowConvExtremeCplTab*1.3){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCplTab*1.3){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplTab*1.3){(NewBid=negweak)}}}
+
+var temp=[];var sig=Math.abs(NewBid*400);
+if(NewBid==boost){sig=0}    
+temp.push(campId, id, NewBid, clicks, sig);
+dev1.push(temp)}
+  
+  if (useAllTimeData == true){
+var report = AdWordsApp.report(
+ "SELECT CampaignId,Device,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+ " WHERE CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 +
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 +
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 +
+ " AND Clicks > 0 " +
+ " AND CampaignStatus = ENABLED " +
+ " DURING "+range);
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+    var device = row["Device"];
+    var clicks = row["Clicks"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;
+    
+if(device=="Computers"){var id=30000;
+if(conversions==0){
+if(cost>noConvMaxCostDsk*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCostDsk*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCplDsk*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCplDsk*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCplDsk*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplDsk*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCplDsk*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCplDsk*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCplDsk*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplDsk*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCplDsk*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplDsk*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCplDsk*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplDsk*1.2){(NewBid=negweak)}}}
+
+if(device=="Mobile devices with full browsers"){var id=30001;
+if(conversions<0.1){
+if(cost>noConvMaxCostMob*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCostMob*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCplMob*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCplMob*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCplMob*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplMob*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCplMob*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCplMob*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCplMob*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplMob*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCplMob*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplMob*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCplMob*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplMob*1.2){(NewBid=negweak)}}}
+    
+if(device=="Tablets with full browsers"){var id=30002;
+if(conversions<0.1){
+if(cost>noConvMaxCostTab*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCostTab*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCplTab*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCplTab*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCplTab*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCplTab*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCplTab*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCplTab*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCplTab*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCplTab*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCplTab*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCplTab*1.2){(NewBid=negweak)}}}
+    
+if(NewBid!=0){var temp=[];
+temp.push(campId, id, NewBid, clicks);
+devAll.push(temp)}}}
+    
+var report = AdWordsApp.report(
+ "SELECT CampaignId,AdNetworkType1"+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT "+
+ " WHERE CampaignName CONTAINS "+campContains1+
+ " AND CampaignName CONTAINS "+campContains2+ 
+ " AND CampaignName CONTAINS "+campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain1+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
+ " AND Clicks > 0 "+
+ " AND AdNetworkType1 = SEARCH "+
+ " AND CampaignStatus = ENABLED "+
+ " DURING LAST_30_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+
+srchCamp.push(campId)}  
+  
+  if(usePreviousDayData==true){
+for(x=0;x<dev7.length;x++){for(y=0;y<dev1.length;y++)
+{if(dev7[x][0]==dev1[y][0]&&dev7[x][1]==dev1[y][1]&&dev7[x][3]==dev1[y][3])
+{(dev7[x][2]=dev1[y][2]);(y=dev1.length)}
+else if(dev7[x][0]==dev1[y][0]&&dev7[x][1]==dev1[y][1]&&dev7[x][3]!=dev1[y][3])
+{(dev7[x][2]=dev7[x][2]+dev1[y][2]);(y=dev1.length)}}}}
+   
+for(x=0;x<dev14.length;x++){for(y=0;y<dev7.length;y++){
+if(dev14[x][0]==dev7[y][0]&&dev14[x][1]==dev7[y][1]&&dev14[x][3]==dev7[y][3])
+{(dev14[x][2]=dev7[y][2]);(dev14[x][4]=dev7[y][4]);(y=dev7.length)}
+else if(dev14[x][0]==dev7[y][0]&&dev14[x][1]==dev7[y][1]&&dev14[x][3]!=dev7[y][3])
+{(dev14[x][2]=dev14[x][2]+dev7[y][2]);(dev14[x][4]=dev14[x][4]+dev7[y][4]);(y=dev7.length)}}}
+
+for(x=0;x<dev30.length;x++){for(y=0;y<dev14.length;y++){
+if(dev30[x][0]==dev14[y][0]&&dev30[x][1]==dev14[y][1]&&dev30[x][3]==dev14[y][3])
+{(dev30[x][2]=dev14[y][2]);(dev30[x][4]=dev14[y][4]);(y=dev14.length)}
+else if(dev30[x][0]==dev14[y][0]&&dev30[x][1]==dev14[y][1]&&dev30[x][3]!=dev14[y][3])
+{(dev30[x][2]=dev30[x][2]+dev14[y][2]);(dev30[x][4]=dev30[x][4]+dev14[y][4]);(y=dev14.length)}}}
+  
+  if(useAllTimeData==true){
+for(x=0;x<dev30.length;x++){
+if(dev30[x][4]!=0){
+var bidHolder=dev30[x][2];for(y=0;y<devAll.length;y++){
+if(dev30[x][0]==devAll[y][0]&&dev30[x][1]==devAll[y][1]&&dev30[x][3]==devAll[y][3])
+{(y=devAll.length)}
+else if(dev30[x][0]==devAll[y][0]&&dev30[x][1]==devAll[y][1]&&dev30[x][3]!=devAll[y][3])
+{if(dev30[x][2]>0&&devAll[y][2]<0){dev30[x][2]=dev30[x][2]+devAll[y][2]}
+if(dev30[x][2]<0&&devAll[y][2]>0){dev30[x][2]=dev30[x][2]+devAll[y][2]}
+if(dev30[x][2]<0&&bidHolder>0){dev30[x][2]=0}
+if(dev30[x][2]>0&&bidHolder<0){dev30[x][2]=0}
+(y=devAll.length)}}}}}
+  
+for(x=0;x<dev30.length;x++){var bidHolder=dev30[x][2];dev30[x][2]=0;
+for(y=0;y<dev1.length;y++){
+if(dev30[x][0]==dev1[y][0]&&dev30[x][1]==dev1[y][1])
+{(dev30[x][2]=bidHolder);(dev30[x][4]=dev30[x][4]+dev1[y][4]);(y=dev1.length)}}}
+  
+for(x = 0; x < dev30.length; x++){
+  var runEval=1;
+  if(useVariedDays==true){
+  runEval=(11-dev30[x][4]);
+  if(runEval<=0){runEval=1};
+    if(dev30[x][4]==0){runEval=2}}
+  
+  if (dev30[x][2] != 0 &&day % runEval === 0) {
+    var NewBid = 0;
+
+  try {    
+   var platforms = AdWordsApp.targeting().platforms()
+    .withIds([[dev30[x][0], dev30[x][1]]]).get();    
+   if (platforms.hasNext()) {
+     var platform = platforms.next();
+     var bid = platform.getBidModifier();
+    var stats = platform.getStatsFor("LAST_7_DAYS");
+     var avgpos = stats.getAveragePosition()}
+  } catch(err){(bid=1)}
+    
+   NewBid = (bid + dev30[x][2]);
+ 
+   for(s=0;s<srchCamp.length;s++){
+     if(srchCamp[s]==dev30[x][0]&&avgpos<=1.2&&dev30[x][2]>=0)
+     {(NewBid=bid);(s=srchCamp.length)}};   
+ 
+   if(NewBid<0.10){(NewBid = 0.10)};
+   if(NewBid>4.00){(NewBid=4.00)};
+
+    if(NewBid!=bid&&bid!=0){
+var temp=[];
+temp.push(dev30[x][0], dev30[x][1], NewBid);
+    final.push(temp)}}}
+  
+  if(clearAdGroups==true){
+  for(x=0;x<agDevs.length;x++){  
+ var adGroups = AdWordsApp
+     .adGroups().withIds([[agDevs[x][0]]]).get();
+ if(adGroups.hasNext()) {
+   var adGroup = adGroups.next();
+  if(agDevs[x][1]=="desktop"){var clear=adGroup.devices().clearDesktopBidModifier()}
+  if(agDevs[x][1]=="mobile"){var clear=adGroup.devices().clearMobileBidModifier()} 
+  if(agDevs[x][1]=="tablet"){var clear=adGroup.devices().clearTabletBidModifier()}}}}
+
+for(x = 0; x < final.length; x++){
+  try {   
+   var platforms = AdWordsApp.targeting().platforms()
+    .withIds([[final[x][0], final[x][1]]]).get();
+   if (platforms.hasNext()) {
+     var platform = platforms.next();
+     var bidder = platform.setBidModifier(final[x][2])}
+  }catch(err){
+  Logger.log("Err CampId:"+final[x][0]+" Id: "+final[x][1])}}}
