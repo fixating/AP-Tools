@@ -1,0 +1,170 @@
+var listNames=['List 1', 'List 2'];
+var threshold=[600, 600];
+var campContains1=['CampaignText', 'CampaignText'];
+var campContains2=['CampaignText', 'CampaignText'];
+var campContains3=['CampaignText', 'CampaignText'];
+var campDoesNotContain1=['Placeholder', 'Placeholder'];
+var campDoesNotContain2=['Placeholder', 'Placeholder'];
+var campDoesNotContain3=['Placeholder', 'Placeholder'];
+
+var starting=new Date("January 01, 2017 00:00:00");
+
+var autoAdd = true;
+var printToSheet = true;
+var listExclusions = true;
+var campExclusions = true;
+var lowConverting = true;
+
+var emailaddress='kevin.adams@academicpartnerships.com';
+var accountname='UTA';
+
+var URL='https://docs.google.com/spreadsheets/d/1hI_oIMjlsckW1_nJJPshUdmRljumAGnJPhj6pwumREs/edit#gid=678714290';
+
+
+var spreadsheet=SpreadsheetApp.openByUrl(URL);
+var sheet=spreadsheet.getSheetByName('Exclusions');
+
+var date=new Date();var yesterday=date-(1000*60*60*24);
+var startDate=Utilities.formatDate(new Date(starting),"CST","yyyy-MM-dd");
+var endDate=Utilities.formatDate(new Date(yesterday),"CST","yyyy-MM-dd");
+var dateRange=startDate.replace(/-/g,"")+","+endDate.replace(/-/g,"");
+
+function main() {
+var final=[];
+for(i=0;i<listNames.length;i++){
+var cArray=[];
+  
+ var report = AdWordsApp.report(
+   "SELECT CampaignId " +
+   " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+   " WHERE CampaignStatus = ENABLED " + 
+   " AND CampaignName CONTAINS " + campContains1[i] +
+   " AND CampaignName CONTAINS " + campContains2[i] + 
+   " AND CampaignName CONTAINS " + campContains3[i] + 
+   " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1[i] + 
+   " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2[i] + 
+   " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3[i])
+  var rows=report.rows();
+   while(rows.hasNext()){
+    var row=rows.next();
+    var campId=row["CampaignId"];
+    cArray.push(campId)}
+  
+ var report = AdWordsApp.report(
+   "SELECT DisplayName,CampaignName,Conversions,Clicks,Cost,CostPerConversion,ConversionRate " +
+   " FROM PLACEMENT_PERFORMANCE_REPORT " + 
+   " WHERE CampaignId IN ["+cArray+"]"+
+   " AND Clicks > 0 DURING "+dateRange);
+  var rows=report.rows();
+   while(rows.hasNext()){
+    var row=rows.next();
+    var url=row["DisplayName"];
+    var campName=row["CampaignName"];
+    var clicks=row["Clicks"];
+    var cost=row["Cost"];
+    var conv=row["Conversions"];
+    var cpl=row["CostPerConversion"];
+    var rate=row["ConversionRate"];
+    cost=cost.replace(/\,/g,'');
+    cost=parseFloat(cost,10);
+    conv=conv.replace(/\,/g,'');
+    conv=parseFloat(conv,10);
+    cpl=cpl.replace(/\,/g,'');
+    cpl=parseFloat(cpl,10);
+    rate=rate.replace(/\,/g,'');
+    rate=parseFloat(rate,10);
+     
+   if(url.indexOf(":")==-1){var temp=[];var negs=0;
+   if(conv==0){negs=1};if(cpl>=threshold[i]){negs=1};if(cost<=threshold[i]){negs=0};
+   if(negs==1){temp.push(listNames[i], campName, url);final.push(temp)}
+
+   if(lowConverting==true){temp=[];negs=0;
+   if(clicks>=100&&cost>=threshold[i]*0.5){if(rate<=0.99){negs=1};if(cpl<=(threshold[i]*0.6)){negs=0};
+   if(conv==0){negs=1};if(negs==1){temp.push(listNames[i], campName, url);final.push(temp)}}}}}
+
+ var report = AdWordsApp.report(
+   "SELECT Url,Conversions,CampaignName,Clicks,Cost,CostPerConversion,ConversionRate " +
+   " FROM URL_PERFORMANCE_REPORT " + 
+   " WHERE CampaignId IN ["+cArray+"]"+
+   " AND Clicks > 0 DURING "+dateRange);
+  var rows=report.rows();
+   while(rows.hasNext()){
+    var row=rows.next();
+    var url=row["Url"];
+    var campName=row["CampaignName"];
+    var clicks=row["Clicks"];
+    var cost=row["Cost"];
+    var conv=row["Conversions"];
+    var cpl=row["CostPerConversion"];
+    var rate=row["ConversionRate"];
+    cost=cost.replace(/\,/g,'');
+    cost=parseFloat(cost,10);
+    conv=conv.replace(/\,/g,'');
+    conv=parseFloat(conv,10);
+    cpl=cpl.replace(/\,/g,'');
+    cpl=parseFloat(cpl,10);
+    rate=rate.replace(/\,/g,'');
+    rate=parseFloat(rate,10);
+     
+    var str = url,
+    delimiter = '/',
+    start = 3,
+    tokens = str.split(delimiter),
+    result = tokens.slice(0, start);  
+    var newchar = '/';
+    result = result.splice(',').join(newchar);
+     
+    if(url.indexOf(":")==-1){var temp=[];var negs=0;
+    if(conv==0){negs=1};if(cpl>=threshold[i]){negs=1};if(cost<=threshold[i]){negs=0};
+    if(negs==1){temp.push(listNames[i], campName, result);final.push(temp)}
+
+    if(lowConverting==true){temp=[];negs=0;
+    if(clicks>=100&&cost>=threshold[i]*0.5){if(rate<=0.99){negs=1};if(cpl<=(threshold[i]*0.6)){negs=0};
+    if(conv==0){negs=1};if(negs==1){temp.push(listNames[i], campName, result);final.push(temp)}}}}}}
+
+  if(autoAdd==true){
+    if(listExclusions==true){
+  for(x=0;x<final.length;x++){
+    try{
+    var excludedPlacementListIterator =
+      AdWordsApp.excludedPlacementLists()
+        .withCondition('Name = "'+ final[x][0] +'"').get();
+    var excludedPlacementList = excludedPlacementListIterator.next();
+    var sharedExcludedPlacementIterator =
+        excludedPlacementList.excludedPlacements().get();
+    var sharedExcludedPlacements = [];
+    while (sharedExcludedPlacementIterator.hasNext()) {
+      sharedExcludedPlacements.push(sharedExcludedPlacementIterator.next())}    
+    excludedPlacementList.addExcludedPlacement(final[x][2])
+    }catch(err){"Failed to add "+final[x][2]+" to list "+final[x][0]}}}
+  
+    if(campExclusions==true){
+    for(x=0;x<final.length;x++){
+      try{    
+  var campaign = AdWordsApp.campaigns()
+      .withCondition('Name = "'+final[x][1]+'"')
+      .get()
+      .next();
+  var placementOperation = campaign.display()
+      .newPlacementBuilder()
+      .withUrl(final[x][2])
+      .exclude();
+      var placement = placementOperation.getResult()
+   }catch(err){"Failed to add "+final[x][2]+" to campaign "+final[x][1]}}}}
+  
+  if(printToSheet==true&&final.length>0){
+    sheet.clearContents();
+var col0="List Name";
+var col1="Campaign Name";
+var col2="Excluded URL";
+var cols=[col0, col1, col2];
+sheet.appendRow(cols);  
+  for(x=0;x<final.length;x++){
+    sheet.appendRow(final[x])}
+    emailSheet()}}
+
+function emailSheet() {
+   MailApp.sendEmail({
+     to: emailaddress,
+     subject: accountname + " Campaign Exclusions",
+     htmlBody: URL})}
