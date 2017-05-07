@@ -1,0 +1,886 @@
+var campContains1 = 'EnterPortionOfCampaignName';
+var campContains2 = 'EnterPortionOfCampaignName';
+var campContains3 = 'EnterPortionOfCampaignName';
+var campDoesNotContain1 = 'Placeholder';
+var campDoesNotContain2 = 'Placeholder';
+var campDoesNotContain3 = 'Placeholder';
+
+var highConvMaxCpl = 165;
+var useAllTimeData = true;
+var useVariedDays = true;
+
+var start=new Date("January 1, 2010 00:00:00");
+var emailaddress="ENTER_EMAIL_ADDRESS";
+var accountname="ENTER_ACCOUNT_NAME";
+
+var URL='ENTER_SPREADSHEET_URL';
+
+
+var spreadsheet=SpreadsheetApp.openByUrl(URL);
+var sheet=spreadsheet.getSheetByName('ENTER_TAB_NAME');
+
+var date=new Date();
+var oneDay=(1000*60*60*24);
+var end=date-oneDay;
+var startDt=Utilities.formatDate(new Date(start),"CST","yyyy-MM-dd");
+var endDt=Utilities.formatDate(new Date(end),"CST","yyyy-MM-dd");
+var range=startDt.replace(/-/g,"")+","+endDt.replace(/-/g,"");
+var now=new Date();
+var start=new Date(now.getFullYear(), 0, 0);
+var diff=now-start;
+var day=Math.floor(diff/oneDay);
+
+var highConvDblMaxCpl=(highConvMaxCpl*1.7);
+var highConvExtremeCpl=(highConvDblMaxCpl*1.7);
+var highConvMinCpl=(highConvMaxCpl*0.8);
+var highConvGreatCpl=(highConvMinCpl*0.7);
+var highConvBoost=(highConvMaxCpl*0.9);
+var lowConvMinCpl=(highConvMinCpl*0.8);
+var lowConvMaxCpl=(lowConvMinCpl*1.25);
+var lowConvDblMaxCpl=(lowConvMaxCpl*1.7);
+var lowConvExtremeCpl=(lowConvDblMaxCpl*1.7);
+var lowConvGreatCpl=(lowConvMinCpl*0.7);
+var lowConvBoost=(lowConvMaxCpl*0.9);
+var superConvMinCpl=(highConvMaxCpl*1.0);
+var superConvMaxCpl=(superConvMinCpl*1.25);
+var superConvDblMaxCpl=(superConvMaxCpl*1.7);
+var superConvExtremeCpl=(superConvDblMaxCpl*1.7);
+var superConvGreatCpl=(superConvMinCpl*0.7);
+var superConvBoost=(superConvMaxCpl*0.9);
+var noConvMaxCost=(lowConvMinCpl*0.65);
+var noConvDblMaxCost=(noConvMaxCost*1.7);
+var noConvExtremeCost=(noConvDblMaxCost*1.7);
+var noConvMinCost=(noConvMaxCost*0.4);
+var negweak = -1;
+var posweak = 1;
+var negstrong = -2;
+var posstrong = 2;
+var negsuper = -3;
+var boost = 0.5
+
+
+function main() {
+sheet.clearContents();
+var col0="Campaign Name"
+var col1="Ad Group Name"
+var col2="Age"
+var col3="Gender"
+var col4="Parental Status"
+var col5="Bid Modifier"  
+var space='';
+var ageAll=[];
+var age30=[];
+var age14=[];
+var age7=[];
+var genAll=[];
+var gen30=[];
+var gen14=[];
+var gen7=[];  
+var parAll=[];
+var par30=[];
+var par14=[];
+var par7=[];    
+var final=[];
+var cols=[];
+cols.push(col0,col1,col2,col3,col4,col5);  
+final.push(cols);
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion,BidModifier"+
+ " FROM AGE_RANGE_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_30_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var age = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var bidmod = row["BidModifier"];
+    bidmod=bidmod.replace(/\,/g,'');
+    bidmod=parseFloat(bidmod,10);
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost<noConvMinCost){(NewBid=posweak)
+}else if(cost>noConvExtremeCost){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCost){(NewBid=negstrong)
+}else if(cost>noConvMaxCost){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl){(NewBid=posweak)
+}else if(costconv<superConvBoost){(NewBid=boost)
+}else if(costconv>superConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl){(NewBid=posweak)
+}else if(costconv<highConvBoost){(NewBid=boost)
+}else if(costconv>highConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl){(NewBid=posweak)
+}else if(costconv<lowConvBoost){(NewBid=boost)
+}else if(costconv>lowConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*100);
+if(conversions==0&&NewBid==1){sig=0};
+if(NewBid==boost){sig=0}    
+temp.push(agName, age, NewBid, clicks, sig, campName, bidmod);
+age30.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM AGE_RANGE_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_14_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var age = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.1)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.1)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.1)){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<(superConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(superConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.1)){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<(highConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(highConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.1)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(lowConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.1)){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*200);
+if(NewBid==boost){sig=0}
+temp.push(agName, age, NewBid, clicks, sig, campName);
+age14.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM AGE_RANGE_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Impressions > 0 " +
+ " DURING LAST_7_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var age = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+  
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.2)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.2)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.2)){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<(superConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(superConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(superConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.2)){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<(highConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(highConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(highConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.2)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(lowConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(lowConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.2)){(NewBid=negweak)}}
+    
+var temp = [];var sig=Math.abs(NewBid*300);
+if(NewBid==boost){sig=0}
+temp.push(agName, age, NewBid, clicks, sig, campName);
+age7.push(temp)}
+  
+    if (useAllTimeData == true){
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM AGE_RANGE_PERFORMANCE_REPORT "+
+ " WHERE CampaignName CONTAINS "+campContains1+
+ " AND CampaignName CONTAINS "+campContains2+ 
+ " AND CampaignName CONTAINS "+campContains3+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain1+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
+ " AND Clicks > 0 "+
+ " AND CampaignStatus = ENABLED "+
+ " AND AdGroupStatus = ENABLED "+
+ " AND Status = ENABLED "+
+ " DURING "+range);
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var age = row["Criteria"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>noConvMaxCost*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCost*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl*1.2){(NewBid=negweak)}}
+    
+if(NewBid!=0){var temp=[];
+temp.push(agName, age, NewBid, clicks, campName);
+ageAll.push(temp)}}}  
+  
+for(x=0;x<age14.length;x++){for(y=0;y<age7.length;y++){
+if(age14[x][0]==age7[y][0]&&age14[x][1]==age7[y][1]&&age14[x][5]==age7[y][5]&&age14[x][3]==age7[y][3])
+{(age14[x][2]=age7[y][2]);(age14[x][4]=age7[y][4]);(y=age7.length)}
+else if(age14[x][0]==age7[y][0]&&age14[x][1]==age7[y][1]&&age14[x][5]==age7[y][5]&&age14[x][3]!=age7[y][3])
+{(age14[x][2]=age14[x][2]+age7[y][2]);(age14[x][4]=age14[x][4]+age7[y][4]);(y=age7.length)}}};
+
+for(x=0;x<age30.length;x++){for(y=0;y<age14.length;y++){
+if(age30[x][0]==age14[y][0]&&age30[x][1]==age14[y][1]&&age30[x][5]==age14[y][5]&&age30[x][3]==age14[y][3])
+{(age30[x][2]=age14[y][2]);(age30[x][4]=age14[y][4]);(y=age14.length)}
+else if(age30[x][0]==age14[y][0]&&age30[x][1]==age14[y][1]&&age30[x][5]==age14[y][5]&&age30[x][3]!=age14[y][3])
+{(age30[x][2]=age30[x][2]+age14[y][2]);(age30[x][4]=age30[x][4]+age14[y][4]);(y=age14.length)}}};
+  
+if(useAllTimeData==true){for(x=0;x<age30.length;x++){
+if(age30[x][4]!=0){var bidHolder=age30[x][2];for(y=0;y<ageAll.length;y++){
+if(age30[x][0]==ageAll[y][0]&&age30[x][1]==ageAll[y][1]&&age30[x][5]==ageAll[y][4]&&age30[x][3]==ageAll[y][3])
+{(y=ageAll.length)}
+else if(age30[x][0]==ageAll[y][0]&&age30[x][1]==ageAll[y][1]&&age30[x][5]==ageAll[y][4]&&age30[x][3]!=ageAll[y][3])
+{if(age30[x][2]>=0.1&&ageAll[y][2]<=-0.1){age30[x][2]=age30[x][2]+ageAll[y][2]}
+if(age30[x][2]<=-0.1&&ageAll[y][2]>=0.1){age30[x][2]=age30[x][2]+ageAll[y][2]}
+if(age30[x][2]<=-0.1&&bidHolder>=0.1){age30[x][2]=0}
+if(age30[x][2]>=0.1&&bidHolder<=-0.1){age30[x][2]=0}
+(y=ageAll.length)}}}}}
+
+for(x=0;x<age30.length;x++){var bidHolder=age30[x][2];age30[x][2]=0;
+for(y=0;y<age7.length;y++){
+if(age30[x][0]==age7[y][0]&&age30[x][1]==age7[y][1]&&age30[x][5]==age7[y][5])
+{(age30[x][2]=bidHolder);(y=age7.length)}}}
+  
+for(i=0;i<age30.length;i++){if(age30[i][2]!=0){var temp=[];
+if(age30[i][1]=="Undetermined"){age30[i][1]=age30[i][1].replace("Undetermined", "Unknown")}
+if(age30[i][1]=="18to24"){age30[i][1]=age30[i][1].replace("18to24", "18-24")}
+if(age30[i][1]=="25to34"){age30[i][1]=age30[i][1].replace("25to34", "25-34")}
+if(age30[i][1]=="35to44"){age30[i][1]=age30[i][1].replace("35to44", "35-44")}          
+if(age30[i][1]=="45to54"){age30[i][1]=age30[i][1].replace("45to54", "45-54")}     
+if(age30[i][1]=="55to64"){age30[i][1]=age30[i][1].replace("55to64", "55-64")}   
+if(age30[i][1]=="gt64"){age30[i][1]=age30[i][1].replace("gt64", "65 or more")}}}
+
+for(x=0;x<age30.length; x++){
+  var runEval=1;
+  if(useVariedDays==true){
+  runEval=(6-age30[x][4]);
+  if(runEval<=0){runEval=1};
+    if(age30[x][4]==0){runEval=2}}
+  
+  if(age30[x][2]!=0&&day%runEval===0) 
+  {age30[x][2]=Math.round(age30[x][2]);age30[x][2]=age30[x][2]+age30[x][6];
+   var temp=[];temp.push(age30[x][5], age30[x][0], age30[x][1], space, space, age30[x][2]);
+   final.push(temp)}}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion,BidModifier"+
+ " FROM GENDER_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_30_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var gen = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var bidmod = row["BidModifier"];
+    bidmod=bidmod.replace(/\,/g,'');
+    bidmod=parseFloat(bidmod,10);
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost<noConvMinCost){(NewBid=posweak)
+}else if(cost>noConvExtremeCost){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCost){(NewBid=negstrong)
+}else if(cost>noConvMaxCost){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl){(NewBid=posweak)
+}else if(costconv<superConvBoost){(NewBid=boost)
+}else if(costconv>superConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl){(NewBid=posweak)
+}else if(costconv<highConvBoost){(NewBid=boost)
+}else if(costconv>highConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl){(NewBid=posweak)
+}else if(costconv<lowConvBoost){(NewBid=boost)
+}else if(costconv>lowConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*100);
+if(conversions==0&&NewBid==1){sig=0};
+if(NewBid==boost){sig=0}    
+temp.push(agName, gen, NewBid, clicks, sig, campName, bidmod);
+gen30.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM GENDER_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_14_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var gen = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.1)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.1)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.1)){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<(superConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(superConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.1)){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<(highConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(highConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.1)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(lowConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.1)){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*200);
+if(NewBid==boost){sig=0}
+temp.push(agName, gen, NewBid, clicks, sig, campName);
+gen14.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM GENDER_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Impressions > 0 " +
+ " DURING LAST_7_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var gen = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+  
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.2)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.2)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.2)){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<(superConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(superConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(superConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.2)){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<(highConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(highConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(highConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.2)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(lowConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(lowConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.2)){(NewBid=negweak)}}
+    
+var temp = [];var sig=Math.abs(NewBid*300);
+if(NewBid==boost){sig=0}
+temp.push(agName, gen, NewBid, clicks, sig, campName);
+gen7.push(temp)}
+  
+    if (useAllTimeData == true){
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM GENDER_PERFORMANCE_REPORT "+
+ " WHERE CampaignName CONTAINS "+campContains1+
+ " AND CampaignName CONTAINS "+campContains2+ 
+ " AND CampaignName CONTAINS "+campContains3+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain1+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
+ " AND Clicks > 0 "+
+ " AND CampaignStatus = ENABLED "+
+ " AND AdGroupStatus = ENABLED "+
+ " AND Status = ENABLED "+
+ " DURING "+range);
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var gen = row["Criteria"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>noConvMaxCost*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCost*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl*1.2){(NewBid=negweak)}}
+    
+if(NewBid!=0){var temp=[];
+temp.push(agName, gen, NewBid, clicks, campName);
+genAll.push(temp)}}}  
+  
+for(x=0;x<gen14.length;x++){for(y=0;y<gen7.length;y++){
+if(gen14[x][0]==gen7[y][0]&&gen14[x][1]==gen7[y][1]&&gen14[x][5]==gen7[y][5]&&gen14[x][3]==gen7[y][3])
+{(gen14[x][2]=gen7[y][2]);(gen14[x][4]=gen7[y][4]);(y=gen7.length)}
+else if(gen14[x][0]==gen7[y][0]&&gen14[x][1]==gen7[y][1]&&gen14[x][5]==gen7[y][5]&&gen14[x][3]!=gen7[y][3])
+{(gen14[x][2]=gen14[x][2]+gen7[y][2]);(gen14[x][4]=gen14[x][4]+gen7[y][4]);(y=gen7.length)}}};
+
+for(x=0;x<gen30.length;x++){for(y=0;y<gen14.length;y++){
+if(gen30[x][0]==gen14[y][0]&&gen30[x][1]==gen14[y][1]&&gen30[x][5]==gen14[y][5]&&gen30[x][3]==gen14[y][3])
+{(gen30[x][2]=gen14[y][2]);(gen30[x][4]=gen14[y][4]);(y=gen14.length)}
+else if(gen30[x][0]==gen14[y][0]&&gen30[x][1]==gen14[y][1]&&gen30[x][5]==gen14[y][5]&&gen30[x][3]!=gen14[y][3])
+{(gen30[x][2]=gen30[x][2]+gen14[y][2]);(gen30[x][4]=gen30[x][4]+gen14[y][4]);(y=gen14.length)}}};
+  
+if(useAllTimeData==true){for(x=0;x<gen30.length;x++){
+if(gen30[x][4]!=0){var bidHolder=gen30[x][2];for(y=0;y<genAll.length;y++){
+if(gen30[x][0]==genAll[y][0]&&gen30[x][1]==genAll[y][1]&&gen30[x][5]==genAll[y][4]&&gen30[x][3]==genAll[y][3])
+{(y=genAll.length)}
+else if(gen30[x][0]==genAll[y][0]&&gen30[x][1]==genAll[y][1]&&gen30[x][5]==genAll[y][4]&&gen30[x][3]!=genAll[y][3])
+{if(gen30[x][2]>=0.1&&genAll[y][2]<=-0.1){gen30[x][2]=gen30[x][2]+genAll[y][2]}
+if(gen30[x][2]<=-0.1&&genAll[y][2]>=0.1){gen30[x][2]=gen30[x][2]+genAll[y][2]}
+if(gen30[x][2]<=-0.1&&bidHolder>=0.1){gen30[x][2]=0}
+if(gen30[x][2]>=0.1&&bidHolder<=-0.1){gen30[x][2]=0}
+(y=genAll.length)}}}}}
+
+for(x=0;x<gen30.length;x++){var bidHolder=gen30[x][2];gen30[x][2]=0;
+for(y=0;y<gen7.length;y++){
+if(gen30[x][0]==gen7[y][0]&&gen30[x][1]==gen7[y][1]&&gen30[x][5]==gen7[y][5])
+{(gen30[x][2]=bidHolder);(y=gen7.length)}}}
+  
+for(i=0;i<gen30.length;i++){if(gen30[i][2]!=0){var temp=[];
+if(gen30[i][1]=="Undetermined"){gen30[i][1]=gen30[i][1].replace("Undetermined", "Unknown")}}}
+  
+for(x=0;x<gen30.length; x++){
+  var runEval=1;
+  if(useVariedDays==true){
+  runEval=(6-gen30[x][4]);
+  if(runEval<=0){runEval=1};
+    if(gen30[x][4]==0){runEval=2}}
+  
+  if(gen30[x][2]!=0&&day%runEval===0) 
+  {gen30[x][2]=Math.round(gen30[x][2]);gen30[x][2]=gen30[x][2]+gen30[x][6];
+   var temp=[];temp.push(gen30[x][5], gen30[x][0], space, gen30[x][1], space, gen30[x][2]);
+   final.push(temp)}}
+  
+
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion,BidModifier"+
+ " FROM PARENTAL_STATUS_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_30_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var par = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var bidmod = row["BidModifier"];
+    bidmod=bidmod.replace(/\,/g,'');
+    bidmod=parseFloat(bidmod,10);
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost<noConvMinCost){(NewBid=posweak)
+}else if(cost>noConvExtremeCost){(NewBid=negsuper)
+}else if(cost>noConvDblMaxCost){(NewBid=negstrong)
+}else if(cost>noConvMaxCost){(NewBid=negweak)}
+}else if(conversions>=30){
+if(costconv<superConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl){(NewBid=posweak)
+}else if(costconv<superConvBoost){(NewBid=boost)
+}else if(costconv>superConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>superConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl){(NewBid=negweak)}
+}else if(conversions>=9){
+if(costconv<highConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl){(NewBid=posweak)
+}else if(costconv<highConvBoost){(NewBid=boost)
+}else if(costconv>highConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>highConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl){(NewBid=negweak)}
+}else{if(costconv<lowConvGreatCpl){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl){(NewBid=posweak)
+}else if(costconv<lowConvBoost){(NewBid=boost)
+}else if(costconv>lowConvExtremeCpl){(NewBid=negsuper)
+}else if(costconv>lowConvDblMaxCpl){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*100);
+if(conversions==0&&NewBid==1){sig=0};
+if(NewBid==boost){sig=0}    
+temp.push(agName, par, NewBid, clicks, sig, campName, bidmod);
+par30.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM PARENTAL_STATUS_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Clicks > 0 " +
+ " DURING LAST_14_DAYS");  
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var par = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.1)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.1)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.1)){(NewBid=negweak)}
+}else if(conversions>=15){
+if(costconv<(superConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(superConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.1)){(NewBid=negweak)}
+}else if(conversions>=4.5){
+if(costconv<(highConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(highConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.1)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.9)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.9)){(NewBid=posweak)
+}else if(costconv>(lowConvExtremeCpl*1.1)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.1)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.1)){(NewBid=negweak)}}
+
+var temp=[];var sig=Math.abs(NewBid*200);
+if(NewBid==boost){sig=0}
+temp.push(agName, par, NewBid, clicks, sig, campName);
+par14.push(temp)}
+  
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM PARENTAL_STATUS_PERFORMANCE_REPORT " +
+ " WHERE CampaignStatus = ENABLED " +
+ " AND AdGroupStatus = ENABLED " +
+ " AND Status = ENABLED " +
+ " AND CampaignName CONTAINS " + campContains1 +
+ " AND CampaignName CONTAINS " + campContains2 + 
+ " AND CampaignName CONTAINS " + campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain1 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain2 + 
+ " AND CampaignName DOES_NOT_CONTAIN " + campDoesNotContain3 + 
+ " AND Impressions > 0 " +
+ " DURING LAST_7_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var par = row["Criteria"];
+    var clicks = row["Clicks"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+  
+if(conversions==0){
+if(cost>(noConvExtremeCost*1.2)){(NewBid=negsuper)
+}else if(cost>(noConvDblMaxCost*1.2)){(NewBid=negstrong)
+}else if(cost>(noConvMaxCost*1.2)){(NewBid=negweak)}
+}else if(conversions>=10){
+if(costconv<(superConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(superConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(superConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(superConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(superConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(superConvMaxCpl*1.2)){(NewBid=negweak)}
+}else if(conversions>=3){
+if(costconv<(highConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(highConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(highConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(highConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(highConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(highConvMaxCpl*1.2)){(NewBid=negweak)}
+}else{if(costconv<(lowConvGreatCpl*0.8)){(NewBid=posstrong)
+}else if(costconv<(lowConvMinCpl*0.8)){(NewBid=posweak)
+}else if(costconv<(lowConvBoost*0.8)){(NewBid=boost)
+}else if(costconv>(lowConvExtremeCpl*1.2)){(NewBid=negsuper)
+}else if(costconv>(lowConvDblMaxCpl*1.2)){(NewBid=negstrong)
+}else if(costconv>(lowConvMaxCpl*1.2)){(NewBid=negweak)}}
+    
+var temp = [];var sig=Math.abs(NewBid*300);
+if(NewBid==boost){sig=0}
+temp.push(agName, par, NewBid, clicks, sig, campName);
+par7.push(temp)}
+  
+    if (useAllTimeData == true){
+var report = AdWordsApp.report(
+ "SELECT CampaignName,AdGroupName,Criteria,Clicks,Conversions,Cost,CostPerConversion"+
+ " FROM PARENTAL_STATUS_PERFORMANCE_REPORT "+
+ " WHERE CampaignName CONTAINS "+campContains1+
+ " AND CampaignName CONTAINS "+campContains2+ 
+ " AND CampaignName CONTAINS "+campContains3+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain1+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
+ " AND Clicks > 0 "+
+ " AND CampaignStatus = ENABLED "+
+ " AND AdGroupStatus = ENABLED "+
+ " AND Status = ENABLED "+
+ " DURING "+range);
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var par = row["Criteria"];
+    var campName = row["CampaignName"];
+    var agName = row["AdGroupName"];
+    var cost = row["Cost"];
+    var conversions = row["Conversions"];
+    var costconv = row["CostPerConversion"];
+    var NewBid = 0;    
+    
+if(conversions==0){
+if(cost>noConvMaxCost*1.4){(NewBid=negstrong)
+}else if(cost>noConvMaxCost*1.2){(NewBid=negweak)}
+}else if(conversions>=60){
+if(costconv<superConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<superConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>superConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>superConvMaxCpl*1.2){(NewBid=negweak)}
+}else if(conversions>=18){
+if(costconv<highConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<highConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>highConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>highConvMaxCpl*1.2){(NewBid=negweak)}
+}else{if(costconv<lowConvMinCpl*0.6){(NewBid=posstrong)
+}else if(costconv<lowConvMinCpl*0.8){(NewBid=posweak)
+}else if(costconv>lowConvMaxCpl*1.4){(NewBid=negstrong)
+}else if(costconv>lowConvMaxCpl*1.2){(NewBid=negweak)}}
+    
+if(NewBid!=0){var temp=[];
+temp.push(agName, par, NewBid, clicks, campName);
+parAll.push(temp)}}}  
+  
+for(x=0;x<par14.length;x++){for(y=0;y<par7.length;y++){
+if(par14[x][0]==par7[y][0]&&par14[x][1]==par7[y][1]&&par14[x][5]==par7[y][5]&&par14[x][3]==par7[y][3])
+{(par14[x][2]=par7[y][2]);(par14[x][4]=par7[y][4]);(y=par7.length)}
+else if(par14[x][0]==par7[y][0]&&par14[x][1]==par7[y][1]&&par14[x][5]==par7[y][5]&&par14[x][3]!=par7[y][3])
+{(par14[x][2]=par14[x][2]+par7[y][2]);(par14[x][4]=par14[x][4]+par7[y][4]);(y=par7.length)}}};
+
+for(x=0;x<par30.length;x++){for(y=0;y<par14.length;y++){
+if(par30[x][0]==par14[y][0]&&par30[x][1]==par14[y][1]&&par30[x][5]==par14[y][5]&&par30[x][3]==par14[y][3])
+{(par30[x][2]=par14[y][2]);(par30[x][4]=par14[y][4]);(y=par14.length)}
+else if(par30[x][0]==par14[y][0]&&par30[x][1]==par14[y][1]&&par30[x][5]==par14[y][5]&&par30[x][3]!=par14[y][3])
+{(par30[x][2]=par30[x][2]+par14[y][2]);(par30[x][4]=par30[x][4]+par14[y][4]);(y=par14.length)}}};
+  
+if(useAllTimeData==true){for(x=0;x<par30.length;x++){
+if(par30[x][4]!=0){var bidHolder=par30[x][2];for(y=0;y<parAll.length;y++){
+if(par30[x][0]==parAll[y][0]&&par30[x][1]==parAll[y][1]&&par30[x][5]==parAll[y][4]&&par30[x][3]==parAll[y][3])
+{(y=parAll.length)}
+else if(par30[x][0]==parAll[y][0]&&par30[x][1]==parAll[y][1]&&par30[x][5]==parAll[y][4]&&par30[x][3]!=parAll[y][3])
+{if(par30[x][2]>=0.1&&parAll[y][2]<=-0.1){par30[x][2]=par30[x][2]+parAll[y][2]}
+if(par30[x][2]<=-0.1&&parAll[y][2]>=0.1){par30[x][2]=par30[x][2]+parAll[y][2]}
+if(par30[x][2]<=-0.1&&bidHolder>=0.1){par30[x][2]=0}
+if(par30[x][2]>=0.1&&bidHolder<=-0.1){par30[x][2]=0}
+(y=parAll.length)}}}}}
+
+for(x=0;x<par30.length;x++){var bidHolder=par30[x][2];par30[x][2]=0;
+for(y=0;y<par7.length;y++){
+if(par30[x][0]==par7[y][0]&&par30[x][1]==par7[y][1]&&par30[x][5]==par7[y][5])
+{(par30[x][2]=bidHolder);(y=par7.length)}}}
+  
+for(i=0;i<par30.length;i++){if(par30[i][2]!=0){var temp=[];
+if(par30[i][1]=="Undetermined"){par30[i][1]=par30[i][1].replace("Undetermined", "Unknown")}}}
+  
+for(x=0;x<par30.length; x++){
+  var runEval=1;
+  if(useVariedDays==true){
+  runEval=(6-par30[x][4]);
+  if(runEval<=0){runEval=1};
+    if(par30[x][4]==0){runEval=2}}
+  
+  if(par30[x][2]!=0&&day%runEval===0) 
+  {par30[x][2]=Math.round(par30[x][2]);par30[x][2]=par30[x][2]+par30[x][6];
+   var temp=[];temp.push(par30[x][5], par30[x][0], space, space, par30[x][1], par30[x][2]);
+   final.push(temp)}}
+
+  for(x=0;x<final.length;x++){
+    sheet.appendRow(final[x])}
+emailSheet()}
+
+function emailSheet() {
+   MailApp.sendEmail({
+     to: emailaddress,
+     subject: accountname + " Demographic Bids",
+     htmlBody: URL})}
