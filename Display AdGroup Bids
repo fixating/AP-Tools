@@ -5,46 +5,50 @@ var campDoesNotContain1 = 'Placeholder';
 var campDoesNotContain2 = 'Placeholder';
 var campDoesNotContain3 = 'Placeholder';
 
-var highConvMaxCpl = 165;
+var targetCpl = 165;
 var usePreviousDayData = true;
 var useAllTimeData = true;
 var useVariedDays = true;
 
-var start=new Date("January 01, 2017 00:00:00");
+var start=new Date("July 01, 2010 00:00:00");
 
 var date=new Date();
 var oneDay=(1000*60*60*24);
+var ninetyDays=date-(1000*60*60*24*90);
 var end=date-oneDay;
+var start=new Date(date.getFullYear(), 0, 0);
 var startDt=Utilities.formatDate(new Date(start),"CST","yyyy-MM-dd");
 var endDt=Utilities.formatDate(new Date(end),"CST","yyyy-MM-dd");
 var range=startDt.replace(/-/g,"")+","+endDt.replace(/-/g,"");
+var threeMonths=Utilities.formatDate(new Date(ninetyDays),"CST","yyyy-MM-dd");
+var lrRange=threeMonths.replace(/-/g,"")+","+endDt.replace(/-/g,"");
 var now=new Date();
-var start=new Date(now.getFullYear(), 0, 0);
-var diff=now-start;
+var diff=date-start;
 var day=Math.floor(diff/oneDay);
 
+var highConvMaxCpl=(targetCpl*1.1);
 var highConvDblMaxCpl=(highConvMaxCpl*1.7);
 var highConvExtremeCpl=(highConvDblMaxCpl*1.7);
-var highConvMinCpl=(highConvMaxCpl*0.8);
+var highConvMinCpl=(targetCpl*0.9);
 var highConvGreatCpl=(highConvMinCpl*0.7);
-var highConvBoost=(highConvMaxCpl*0.9);
-var lowConvMinCpl=(highConvMinCpl*0.8);
-var lowConvMaxCpl=(lowConvMinCpl*1.25);
+var highConvBoost=(targetCpl);
+var lowConvMaxCpl=(targetCpl);
+var lowConvMinCpl=(targetCpl*0.8);
 var lowConvDblMaxCpl=(lowConvMaxCpl*1.7);
 var lowConvExtremeCpl=(lowConvDblMaxCpl*1.7);
 var lowConvGreatCpl=(lowConvMinCpl*0.7);
-var lowConvBoost=(lowConvMaxCpl*0.9);
-var superConvMinCpl=(highConvMaxCpl*1.0);
-var superConvMaxCpl=(superConvMinCpl*1.25);
+var lowConvBoost=(highConvMinCpl);
+var superConvMinCpl=(targetCpl);
+var superConvMaxCpl=(highConvMaxCpl*1.1);
 var superConvDblMaxCpl=(superConvMaxCpl*1.7);
 var superConvExtremeCpl=(superConvDblMaxCpl*1.7);
 var superConvGreatCpl=(superConvMinCpl*0.7);
-var superConvBoost=(superConvMaxCpl*0.9);
-var noConvMaxCost=(lowConvMinCpl*0.65);
+var superConvBoost=(highConvMaxCpl);
+var noConvMaxCost=(lowConvMinCpl*0.7);
 var noConvDblMaxCost=(noConvMaxCost*1.7);
 var noConvExtremeCost=(noConvDblMaxCost*1.7);
 var noConvMinCost=(noConvMaxCost*0.4);
-var bidCeiling=(highConvMaxCpl*0.6);
+var bidCeiling=(targetCpl*0.6);
 var negweak = -0.01;
 var posweak = 0.01;
 var negstrong = -0.02;
@@ -73,6 +77,7 @@ var report = AdWordsApp.report(
  " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
  " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
  " AND Clicks > 0 AND AdNetworkType1 != SEARCH "+
+ " AND BiddingStrategyType IN [MANUAL_CPC, ENHANCED_CPC, NONE]"+ 
  " AND ContentBidCriterionTypeGroup IN [KEYWORD, USER_INTEREST_AND_LIST, VERTICAL, PLACEMENT, NONE]"+ 
  " AND CampaignStatus = ENABLED AND AdGroupStatus = ENABLED"+
  " DURING LAST_30_DAYS");
