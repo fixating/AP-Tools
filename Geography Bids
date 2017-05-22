@@ -5,42 +5,46 @@ var campDoesNotContain1 = 'Placeholder';
 var campDoesNotContain2 = 'Placeholder';
 var campDoesNotContain3 = 'Placeholder';
 
-var highConvMaxCpl = 165;
+var targetCpl = 165;
 var usePreviousDayData = true;
 var useAllTimeData = true;
 var useVariedDays = true;
 
-var start=new Date("January 1, 2010 00:00:00");
+var start=new Date("March 01, 2017 00:00:00");
 
 var date=new Date();
 var oneDay=(1000*60*60*24);
+var ninetyDays=date-(1000*60*60*24*90);
 var end=date-oneDay;
+var start=new Date(date.getFullYear(), 0, 0);
 var startDt=Utilities.formatDate(new Date(start),"CST","yyyy-MM-dd");
 var endDt=Utilities.formatDate(new Date(end),"CST","yyyy-MM-dd");
 var range=startDt.replace(/-/g,"")+","+endDt.replace(/-/g,"");
+var threeMonths=Utilities.formatDate(new Date(ninetyDays),"CST","yyyy-MM-dd");
+var lrRange=threeMonths.replace(/-/g,"")+","+endDt.replace(/-/g,"");
 var now=new Date();
-var start=new Date(now.getFullYear(), 0, 0);
-var diff=now-start;
+var diff=date-start;
 var day=Math.floor(diff/oneDay);
 
+var highConvMaxCpl=(targetCpl*1.1);
 var highConvDblMaxCpl=(highConvMaxCpl*1.7);
 var highConvExtremeCpl=(highConvDblMaxCpl*1.7);
-var highConvMinCpl=(highConvMaxCpl*0.8);
+var highConvMinCpl=(targetCpl*0.9);
 var highConvGreatCpl=(highConvMinCpl*0.7);
-var highConvBoost=(highConvMaxCpl*0.9);
-var lowConvMinCpl=(highConvMinCpl*0.8);
-var lowConvMaxCpl=(lowConvMinCpl*1.25);
+var highConvBoost=(targetCpl);
+var lowConvMaxCpl=(targetCpl);
+var lowConvMinCpl=(targetCpl*0.8);
 var lowConvDblMaxCpl=(lowConvMaxCpl*1.7);
 var lowConvExtremeCpl=(lowConvDblMaxCpl*1.7);
 var lowConvGreatCpl=(lowConvMinCpl*0.7);
-var lowConvBoost=(lowConvMaxCpl*0.9);
-var superConvMinCpl=(highConvMaxCpl*1.0);
-var superConvMaxCpl=(superConvMinCpl*1.25);
+var lowConvBoost=(highConvMinCpl);
+var superConvMinCpl=(targetCpl);
+var superConvMaxCpl=(highConvMaxCpl*1.1);
 var superConvDblMaxCpl=(superConvMaxCpl*1.7);
 var superConvExtremeCpl=(superConvDblMaxCpl*1.7);
 var superConvGreatCpl=(superConvMinCpl*0.7);
-var superConvBoost=(superConvMaxCpl*0.9);
-var noConvMaxCost=(lowConvMinCpl*0.65);
+var superConvBoost=(highConvMaxCpl);
+var noConvMaxCost=(lowConvMinCpl*0.7);
 var noConvDblMaxCost=(noConvMaxCost*1.7);
 var noConvExtremeCost=(noConvDblMaxCost*1.7);
 var noConvMinCost=(noConvMaxCost*0.4);
@@ -53,13 +57,60 @@ var boost = 0.005;
 
 function main() {
 var srchCamp = [];
+var bidType = [];
 var geoAll = [];
 var geo30 = [];
 var geo14 = [];
 var geo7 = [];
 var geo1 = [];
 var final = [];
-
+var costWithConv=0;
+var convWithConv=0
+var costAll=0;
+var convAll=0;  
+ var report = AdWordsApp.report(
+   "SELECT Cost,Conversions " +
+   " FROM SEARCH_QUERY_PERFORMANCE_REPORT " +
+   " WHERE Conversions > 0 DURING "+lrRange);
+  var rows=report.rows();
+   while(rows.hasNext()){
+    var row=rows.next();
+    var cost=row["Cost"];
+    var conv=row["Conversions"];
+    cost=cost.replace(/\,/g,'');
+    cost=parseFloat(cost,10);
+    conv=conv.replace(/\,/g,'');
+    conv=parseFloat(conv,10);
+    costWithConv=costWithConv+=cost;
+    convWithConv=convWithConv+=conv}
+  
+ var report = AdWordsApp.report(
+   "SELECT Cost,Conversions " +
+   " FROM SEARCH_QUERY_PERFORMANCE_REPORT " +
+   " WHERE Cost > 0 DURING "+lrRange);
+  var rows=report.rows();
+   while(rows.hasNext()){
+    var row=rows.next();
+    var cost=row["Cost"];
+    var conv=row["Conversions"];
+    cost=cost.replace(/\,/g,'');
+    cost=parseFloat(cost,10);
+    conv=conv.replace(/\,/g,'');
+    conv=parseFloat(conv,10); 
+    costAll=costAll+=cost;
+    convAll=convAll+=conv}  
+  
+  var convCpl = costWithConv/convWithConv;
+  var totalCpl = costAll/convAll;
+  var sigBoost = 0;
+  var lrRatio = totalCpl/convCpl;
+  var test=Math.ceil(lrRatio-1)/0.5;
+  if(test>=10||test<=0){test=2};
+  if(lrRatio<=1.5&&lrRatio>=1){sigBoost++}
+  if(lrRatio<=20&&lrRatio>=2.0){
+    (sigBoost = Math.ceil((lrRatio-2)/0.5))}
+  var sigCheck = (11-sigBoost);
+  
 var report = AdWordsApp.report(
  "SELECT CampaignId,Id,Conversions,Clicks,Cost,CostPerConversion"+
  " FROM CAMPAIGN_LOCATION_TARGET_REPORT "+
@@ -70,7 +121,7 @@ var report = AdWordsApp.report(
  " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
  " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
  " AND Clicks > 0 "+
- " AND CampaignStatus = ENABLED "+
+ " AND CampaignStatus = ENABLED "+ 
  " DURING LAST_30_DAYS");
 var rows = report.rows();
   while (rows.hasNext()) {
@@ -339,6 +390,26 @@ var rows = report.rows();
     var campId = row["CampaignId"];
 srchCamp.push(campId)}  
   
+var report = AdWordsApp.report(
+ "SELECT CampaignId "+
+ " FROM CAMPAIGN_PERFORMANCE_REPORT "+
+ " WHERE CampaignName CONTAINS "+campContains1+
+ " AND CampaignName CONTAINS "+campContains2+ 
+ " AND CampaignName CONTAINS "+campContains3 + 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain1+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain2+ 
+ " AND CampaignName DOES_NOT_CONTAIN "+campDoesNotContain3+ 
+ " AND Clicks > 0 "+
+ " AND CampaignStatus = ENABLED "+
+ " AND BiddingStrategyType NOT_IN [MANUAL_CPC, ENHANCED_CPC, NONE]"+  
+ " DURING LAST_30_DAYS");
+var rows = report.rows();
+  while (rows.hasNext()) {
+    var row = rows.next();
+    var campId = row["CampaignId"];
+
+bidType.push(campId)}    
+  
 if(usePreviousDayData==true){
 for(x=0;x<geo7.length;x++){for(y=0;y<geo1.length;y++){
 if(geo7[x][0]==geo1[y][0]&&geo7[x][1]==geo1[y][1]&&geo7[x][3]==geo1[y][3])
@@ -375,12 +446,18 @@ for(y=0;y<geo1.length;y++){
 if(geo30[x][0]==geo1[y][0]&&geo30[x][1]==geo1[y][1])
 {(geo30[x][2]=bidHolder);(geo30[x][4]=geo30[x][4]+geo1[y][4]);(y=geo1.length)}}}
   
+for(x=0;x<geo30.length;x++){for(y=0;y<srchCamp.length;y++){
+if(geo30[x][0]==srchCamp[y][0]){(geo30[x][3]=0);(y=srchCamp.length)}}}  
+  
+for(x=0;x<geo30.length;x++){for(y=0;y<bidType.length;y++){
+if(geo30[x][0]==bidType[y][0]){(geo30[x][2]=0);(y=srchCamp.length)}}}  
+  
 for(x = 0; x < geo30.length; x++){
   var runEval=1;
   if(useVariedDays==true){
-  runEval=(11-geo30[x][4]);
+  runEval=(sigCheck-geo30[x][4]);
   if(runEval<=0){runEval=1};
-    if(geo30[x][4]==0){runEval=2}}
+    if(geo30[x][4]==0){runEval=test}}
   
   if(geo30[x][2]!=0&&day%runEval===0){
    var NewBid=0;var bid=1;var len=geo30[x][1].length;
@@ -405,10 +482,11 @@ for(x = 0; x < geo30.length; x++){
       var avgpos = stats.getAveragePosition()}};  
    }catch(err){(bid = 1)};
     
-    NewBid = (bid + geo30[x][2]);
-    for(s=0;s<srchCamp.length;s++){
-     if(srchCamp[s]==geo30[x][0]&&avgpos<1.2&&geo30[x][2]>0)
-     {(NewBid=bid);(s=srchCamp.length)}};              
+    NewBid = (bid + geo30[x][2]);     
+    
+    if(geo30[x][3]==0&&avgpos<=1.2&&geo30[x][2]>=0)
+     {(NewBid=bid)}     
+    
     if(NewBid<0.10){(NewBid=0.10)};
     if(NewBid>4.00){(NewBid=4.00)};
 
