@@ -345,8 +345,9 @@ for(y=0;y<ag1.length;y++){if(ag30[x][0]==ag1[y][0])
   if(crList.length>0){
 var report = AdWordsApp.report(
  "SELECT AdGroupId,Id,CriteriaType,Clicks,Conversions,Cost,CostPerConversion"+
- " FROM CRITERIA_PERFORMANCE_REPORT "+
- " WHERE CriteriaType IN [USER_INTEREST, USER_LIST, VERTICAL, PLACEMENT]"+  
+ " FROM CRITERIA_PERFORMANCE_REPORT "+ 
+ " WHERE CriteriaType IN [USER_INTEREST, USER_LIST, VERTICAL, PLACEMENT]"+
+ " AND BidType NOT_IN [TARGET_CPA] "+  
  " AND Clicks > 0 AND AdGroupId IN ["+crList+"] AND AdNetworkType1 != SEARCH"+
  " DURING LAST_30_DAYS");
 var rows = report.rows();
@@ -632,8 +633,9 @@ if(cr30[x][0]==cr1[y][0]&&cr30[x][1]==cr1[y][1]&&cr30[x][5]==cr1[y][5])
   if(kwCheckList.length>0){  
 var report = AdWordsApp.report(
  "SELECT AdGroupId,Id,Clicks,Conversions,Cost,CostPerConversion"+
- " FROM DISPLAY_KEYWORD_PERFORMANCE_REPORT "+
- " WHERE AdGroupId IN ["+kwCheckList+"] AND Clicks > 0 "+  
+ " FROM DISPLAY_KEYWORD_PERFORMANCE_REPORT "+ 
+ " WHERE AdGroupId IN ["+kwCheckList+"] AND Clicks > 0 "+
+ " AND BidType NOT_IN [TARGET_CPA] "+  
  " DURING LAST_30_DAYS");
 var rows = report.rows();
   while (rows.hasNext()) {
