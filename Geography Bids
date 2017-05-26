@@ -455,6 +455,7 @@ if(geo30[x][0]==bidType[y][0]){(geo30[x][2]=0);(y=bidType.length)}}}
 for(x = 0; x < geo30.length; x++){
   var runEval=1;
   if(useVariedDays==true){
+    if(geo30[x][3]!=0){sigCheck=11;test=2}
   runEval=(sigCheck-geo30[x][4]);
   if(runEval<=0){runEval=1};
     if(geo30[x][4]==0){runEval=test}}
