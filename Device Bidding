@@ -765,10 +765,11 @@ if(dev30[x][0]==srchCamp[y][0]){(dev30[x][3]=0);(y=srchCamp.length)}}}
 for(x = 0; x < dev30.length; x++){
   var runEval=1;
   if(useVariedDays==true){
-    if(dev30[x][3]!=0){sigCheck=11;test=2}
-  runEval=(sigCheck-dev30[x][4]);
+    var sigMod=11;var testMod=2;
+    if(dev30[x][3]==0){sigMod=sigCheck;testMod=test}
+  runEval=(sigMod-dev30[x][4]);
   if(runEval<=0){runEval=1};
-    if(dev30[x][4]==0){runEval=test}}
+    if(dev30[x][4]==0){runEval=testMod}}
   
   if (dev30[x][2] != 0 &&day % runEval === 0) {
     var NewBid = 0;
