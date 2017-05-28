@@ -760,7 +760,7 @@ if(dev30[x][0]==dev1[y][0]&&dev30[x][1]==dev1[y][1])
 {(dev30[x][2]=bidHolder);(dev30[x][4]=dev30[x][4]+dev1[y][4]);(y=dev1.length)}}}
   
 for(x=0;x<dev30.length;x++){for(y=0;y<srchCamp.length;y++){
-if(dev30[x][0]==srchCamp[y][0]){(dev30[x][3]=0);(y=srchCamp.length)}}}
+if(dev30[x][0]==srchCamp[y]){(dev30[x][3]=0);(y=srchCamp.length)}}}
   
 for(x = 0; x < dev30.length; x++){
   var runEval=1;
