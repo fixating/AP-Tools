@@ -447,10 +447,10 @@ if(geo30[x][0]==geo1[y][0]&&geo30[x][1]==geo1[y][1])
 {(geo30[x][2]=bidHolder);(geo30[x][4]=geo30[x][4]+geo1[y][4]);(y=geo1.length)}}}
   
 for(x=0;x<geo30.length;x++){for(y=0;y<srchCamp.length;y++){
-if(geo30[x][0]==srchCamp[y][0]){(geo30[x][3]=0);(y=srchCamp.length)}}}  
+if(geo30[x][0]==srchCamp[y]){(geo30[x][3]=0);(y=srchCamp.length)}}}  
   
 for(x=0;x<geo30.length;x++){for(y=0;y<bidType.length;y++){
-if(geo30[x][0]==bidType[y][0]){(geo30[x][2]=0);(y=bidType.length)}}}  
+if(geo30[x][0]==bidType[y]){(geo30[x][2]=0);(y=bidType.length)}}}  
   
 for(x = 0; x < geo30.length; x++){
   var runEval=1;
