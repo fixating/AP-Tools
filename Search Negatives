@@ -13,7 +13,6 @@ var autoAdd = true;
 var printToSheet = true;
 var listNegatives = true;
 var campNegatives = true;
-var lowConverting = true;
 
 var emailaddress='INSERT_EMAIL_ADDRESS';
 var accountname='INSERT_ACCOUNT_NAME';
