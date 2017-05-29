@@ -13,7 +13,6 @@ var autoAdd = true;
 var printToSheet = true;
 var listExclusions = true;
 var campExclusions = true;
-var lowConverting = true;
 
 var emailaddress='kevin.adams@academicpartnerships.com';
 var accountname='UTA';
@@ -76,11 +75,7 @@ var cArray=[];
      
    if(url.indexOf(":")==-1){var temp=[];var negs=0;
    if(conv==0){negs=1};if(cpl>=threshold[i]){negs=1};if(cost<=threshold[i]){negs=0};
-   if(negs==1){temp.push(listNames[i], campName, url);final.push(temp)}
-
-   if(lowConverting==true){temp=[];negs=0;
-   if(clicks>=100&&cost>=threshold[i]*0.5){if(rate<=0.99){negs=1};if(cpl<=(threshold[i]*0.6)){negs=0};
-   if(conv==0){negs=1};if(negs==1){temp.push(listNames[i], campName, url);final.push(temp)}}}}}
+   if(negs==1){temp.push(listNames[i], campName, url);final.push(temp)}}}
 
  var report = AdWordsApp.report(
    "SELECT Url,Conversions,CampaignName,Clicks,Cost,CostPerConversion,ConversionRate " +
@@ -116,11 +111,7 @@ var cArray=[];
      
     if(url.indexOf(":")==-1){var temp=[];var negs=0;
     if(conv==0){negs=1};if(cpl>=threshold[i]){negs=1};if(cost<=threshold[i]){negs=0};
-    if(negs==1){temp.push(listNames[i], campName, result);final.push(temp)}
-
-    if(lowConverting==true){temp=[];negs=0;
-    if(clicks>=100&&cost>=threshold[i]*0.5){if(rate<=0.99){negs=1};if(cpl<=(threshold[i]*0.6)){negs=0};
-    if(conv==0){negs=1};if(negs==1){temp.push(listNames[i], campName, result);final.push(temp)}}}}}}
+    if(negs==1){temp.push(listNames[i], campName, result);final.push(temp)}}}}
 
   if(autoAdd==true){
     if(listExclusions==true){
