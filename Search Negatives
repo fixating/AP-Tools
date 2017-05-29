@@ -76,11 +76,7 @@ var cArray=[];
 
     var temp=[];var negs=0;
     if(conv==0){negs=1};if(cpl>=threshold[i]){negs=1};if(cost<=threshold[i]){negs=0};
-    if(negs==1){temp.push(listNames[i], campName, "["+query+"]");final.push(temp)}
-
-     if(lowConverting==true){temp=[];negs=0;
-    if(clicks>=100&&cost>=threshold[i]*0.5){if(rate<=0.99){negs=1};if(cpl<=(threshold[i]*0.6)){negs=0};
-    if(conv==0){negs=1};if(negs==1){temp.push(listNames[i], campName, "["+query+"]");final.push(temp)}}}}}
+    if(negs==1){temp.push(listNames[i], campName, "["+query+"]");final.push(temp)}}}
   
   if(autoAdd==true){
     if(listNegatives==true){
