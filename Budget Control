@@ -1,0 +1,137 @@
+var monthlyBudget = 5000;
+
+var date = new Date();
+var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+var dateDD = date.getDate();
+var firstDayDD = firstDay.getDate();
+var lastDayDD = lastDay.getDate();
+var weekDay = date.getDay();
+
+var past = 28;
+var pastdate = 1000 * 60 * 60 * 24 * +past;
+var minusDate = new Date(date.getTime() - pastdate);
+var startDate = Utilities.formatDate(new Date(minusDate), "CST", "yyyy-MM-dd");
+var yesterday = new Date(date.getTime() - 86400000);
+var endDate = Utilities.formatDate(new Date(yesterday), "CST", "yyyy-MM-dd");
+var dateRange = startDate.replace(/-/g, "") + "," + endDate.replace(/-/g, "");
+
+
+
+function main() {
+    var brandspend = 0;
+    var mon = 0;
+    var tue = 0;
+    var wed = 0;
+    var thu = 0;
+    var fri = 0;
+    var sat = 0;
+    var sun = 0;
+    var totalSpend = 0;
+
+    var report = AdWordsApp.report(
+        "SELECT Cost,CampaignName,DayOfWeek " +
+        " FROM CAMPAIGN_PERFORMANCE_REPORT " +
+        " WHERE Clicks > 0 " +
+        " DURING " + dateRange);
+
+    var rows = report.rows();
+    while (rows.hasNext()) {
+        var row = rows.next();
+        var cost = row["Cost"];
+        var camp = row["CampaignName"];
+        var day = row["DayOfWeek"];
+
+        cost = cost.replace(/\,/g, '');
+        cost = parseFloat(cost, 10);
+
+        if (camp.indexOf("gen-B") >= 0) {
+            (brandspend = brandspend + cost);
+        }
+
+        if (day == "Monday") {
+            (mon = mon + cost)
+        } else if (day == "Tuesday") {
+            (tue = tue + cost)
+        } else if (day == "Wednesday") {
+            (wed = wed + cost)
+        } else if (day == "Thursday") {
+            (thu = thu + cost)
+        } else if (day == "Friday") {
+            (fri = fri + cost)
+        } else if (day == "Saturday") {
+            (sat = sat + cost)
+        } else if (day == "Sunday") {
+            (sun = sun + cost)
+        };
+
+        totalSpend = totalSpend + cost;
+    }
+
+    var brandavg = brandspend / 28;
+
+    var budgetmod = 1;
+    mon = (mon * 7) / totalSpend;
+    tue = (tue * 7) / totalSpend;
+    wed = (wed * 7) / totalSpend;
+    thu = (thu * 7) / totalSpend;
+    fri = (fri * 7) / totalSpend;
+    sat = (sat * 7) / totalSpend;
+    sun = (sun * 7) / totalSpend;
+
+    if (weekDay == 0) {
+        (budgetmod = mon)
+    };
+
+    if (weekDay == 1) {
+        (budgetmod = tue)
+    };
+
+    if (weekDay == 2) {
+        (budgetmod = wed)
+    };
+
+    if (weekDay == 3) {
+        (budgetmod = thu)
+    };
+
+    if (weekDay == 4) {
+        (budgetmod = fri)
+    };
+
+    if (weekDay == 5) {
+        (budgetmod = sat)
+    };
+
+    if (weekDay == 6) {
+        (budgetmod = sun)
+    };
+
+    var budgetSelector = AdWordsApp
+        .budgets()
+        .withCondition("BudgetName = 'Monthly'")
+        .forDateRange("THIS_MONTH");
+
+    var budgetIterator = budgetSelector.get();
+    while (budgetIterator.hasNext()) {
+        var budget = budgetIterator.next()
+        var stats = budget.getStatsFor("THIS_MONTH")
+        var spent = stats.getCost()
+        var amount = budget.getAmount()
+        var name = budget.getName()
+        var daysLeft = lastDayDD - dateDD;
+        var budgetLeft = monthlyBudget - spent;
+        var newBudget = budgetLeft / daysLeft;
+        if (daysLeft < 1) {
+            (newBudget = monthlyBudget / 30)
+        };
+
+        newBudget = (newBudget - brandavg) * budgetmod;
+        if (newBudget < 1) {
+            (newBudget = 1)
+        };
+        budget.setAmount(newBudget);
+
+    }
+}
