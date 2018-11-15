@@ -1,0 +1,107 @@
+function main(){
+var sharedBudget = "Florida Shared Budget";
+var monthlyBudget = 5000;
+
+  
+
+var date = new Date();
+var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  
+var dateDD = date.getDate();
+var firstDayDD = firstDay.getDate();
+var lastDayDD = lastDay.getDate();
+var weekDay = date.getDay();
+
+var budgetSelector = AdWordsApp
+     .budgets()
+     .withCondition("IsBudgetExplicitlyShared = true")
+	 .withCondition("BudgetReferenceCount > 1");
+
+ var budgetIterator = budgetSelector.get();
+ while (budgetIterator.hasNext()) {
+   var budget = budgetIterator.next();
+   var budgetId = budget.getId();
+   var budgetName = budget.getName();
+   
+ }
+  
+var budgetmod = 1;
+  
+ 
+  if (weekDay === 1) {
+    (budgetmod = budgetmod + 0.1) };
+
+  if (weekDay === 3) {
+    (budgetmod = budgetmod + 0.1) };
+
+  if (weekDay === 4) {
+    (budgetmod = budgetmod + 0.2) };
+
+  if (weekDay === 5) {
+    (budgetmod = budgetmod - 0.4) };
+
+  if (weekDay === 6) {
+    (budgetmod = budgetmod - 0.3) };
+  
+  if (weekDay === 7) {
+    (budgetmod = budgetmod + 0.2) };
+  
+  if (dateDD === 14) {
+    (budgetmod = budgetmod + 0.2) };  
+  
+  if (dateDD === lastDayDD) {
+    (budgetmod = budgetmod + 0.2) };
+
+try {
+var brandtotal = 0;
+var report = AdWordsApp.report(
+    "SELECT Cost " +
+    "FROM CAMPAIGN_PERFORMANCE_REPORT " +
+    "WHERE CampaignName CONTAINS 'Brand' " +
+    "AND CampaignName DOES_NOT_CONTAIN 'Brands' " +
+    "AND BudgetId NOT_IN [" + budgetId + 
+    "] DURING LAST_30_DAYS");
+
+var rows = report.rows();
+while (rows.hasNext()) {
+    var row = rows.next();
+    var brandspend = row["Cost"];
+
+    var brandtotal = brandtotal + brandspend;
+ }
+}
+catch(err) {
+var brandtotal = 0;
+}
+
+var brandavg = brandtotal/dateDD;
+  
+var budgetSelector = AdWordsApp
+     .budgets()
+     .withCondition("BudgetName = '" + budgetName + "'")
+     .forDateRange("THIS_MONTH");
+  
+ var budgetIterator = budgetSelector.get();
+   while (budgetIterator.hasNext()) {
+   var budget = budgetIterator.next();
+   var stats = budget.getStatsFor("THIS_MONTH");
+   var spent = stats.getCost();
+   var amount = budget.getAmount();
+   var name = budget.getName();
+   var daysLeft = lastDayDD - dateDD;
+   var budgetLeft = monthlyBudget - spent;
+   var newBudget = budgetLeft/daysLeft;
+     if (daysLeft < 1) {
+       (newBudget = monthlyBudget/30)
+     };
+     if (newBudget < 1) {
+        (newBudget = 1)
+     };
+     
+   newBudget = (newBudget - brandavg) * budgetmod;
+       
+   budget.setAmount(newBudget);
+     
+ }
+}
