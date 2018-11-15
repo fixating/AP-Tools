@@ -1,5 +1,5 @@
 function main(){
-var sharedBudget = "Florida Shared Budget";
+var sharedBudget = "Example Shared Budget";
 var monthlyBudget = 5000;
 
   
